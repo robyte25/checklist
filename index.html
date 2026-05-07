@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>FutureCheck Pro - FAB Edition</title>
+    <title>FutureCheck Pro - Clean Edition</title>
     <style>
         :root {
             --bg: #050608;
@@ -12,7 +12,6 @@
             --neon-purple: #bc13fe;
             --neon-yellow: #f0ff00;
             --text: #ffffff;
-            --nav-h: 70px;
         }
 
         body {
@@ -24,36 +23,33 @@
             overflow: hidden; touch-action: manipulation;
         }
 
-        .content { flex: 1; padding: 20px; padding-bottom: 90px; overflow-y: auto; }
+        .content { flex: 1; padding: 20px; overflow-y: auto; }
         .view { display: none; animation: slide 0.3s ease-out; }
         .view.active { display: block; }
 
         @keyframes slide { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
 
-        h2 { color: var(--neon-blue); text-transform: uppercase; border-left: 4px solid var(--neon-purple); padding-left: 10px; }
+        h2 { color: var(--neon-blue); text-transform: uppercase; border-left: 4px solid var(--neon-purple); padding-left: 10px; margin-top: 0; }
 
-        /* Fester FAB (Floating Action Button) */
+        /* Floating Action Button */
         .fab {
             position: fixed;
-            bottom: 90px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
+            bottom: 30px;
+            right: 25px;
+            width: 65px;
+            height: 65px;
             background: linear-gradient(45deg, var(--neon-purple), var(--neon-blue));
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 30px;
+            font-size: 35px;
             color: white;
-            box-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
             border: none;
             cursor: pointer;
-            z-index: 99;
-            transition: transform 0.2s;
+            z-index: 100;
         }
-
-        .fab:active { transform: scale(0.9); }
 
         /* Fortschrittsbalken */
         .progress-container { width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-top: 8px; border-radius: 2px; overflow: hidden; }
@@ -67,8 +63,9 @@
         .btn { padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; }
         .btn-plus { background: var(--neon-blue); color: black; width: 50px; font-size: 1.5rem; }
         .btn-save { background: var(--neon-purple); color: white; width: 100%; margin-top: 10px; }
+        .btn-cancel { background: transparent; color: #888; border: 1px solid #444; width: 100%; margin-top: 10px; }
         
-        .list-btn { width: 100%; background: rgba(255,255,255,0.05); color: white; text-align: left; padding: 15px; margin-bottom: 12px; border: 1px solid var(--neon-blue); border-radius: 10px; }
+        .list-btn { width: 100%; background: rgba(255,255,255,0.05); color: white; text-align: left; padding: 15px; margin-bottom: 12px; border: 1px solid var(--neon-blue); border-radius: 10px; box-sizing: border-box; }
 
         .task-display {
             position: relative;
@@ -77,8 +74,6 @@
             border-radius: 8px;
             margin-bottom: 8px;
             border-left: 5px solid var(--neon-blue);
-            transition: transform 0.2s;
-            overflow: hidden;
             display: flex; justify-content: space-between; align-items: center;
         }
 
@@ -87,47 +82,42 @@
         .prio-2 { border-left-color: var(--neon-purple); }
 
         .edit-input { width: 100%; background: #111; border: 1px dashed var(--neon-blue); color: var(--neon-blue); padding: 8px; border-radius: 4px; font-size: 16px; box-sizing: border-box; }
-
-        nav { position: fixed; bottom: 0; width: 100%; height: var(--nav-h); background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--neon-blue); z-index: 100; }
-        .nav-item { color: #555; font-size: 0.8rem; text-align: center; cursor: pointer; flex: 1; }
-        .nav-item.active { color: var(--neon-blue); }
     </style>
 </head>
 <body>
 
 <div class="content">
+    <!-- ARCHIV -->
     <div id="view-home" class="view active">
-        <h2>Meine Protokolle</h2>
+        <h2>Archiv</h2>
         <div id="archive-container"></div>
     </div>
 
+    <!-- EDITOR -->
     <div id="view-editor" class="view">
         <h2 id="editor-heading">Neues Protokoll</h2>
         <div class="input-card">
-            <input type="text" id="main-title" placeholder="Name der Liste">
+            <input type="text" id="main-title" placeholder="Titel der Liste">
             <div id="dynamic-tasks"></div>
             <div class="task-row">
-                <input type="text" id="new-task-input" placeholder="Aufgabe eingeben...">
+                <input type="text" id="new-task-input" placeholder="Aufgabe hinzufügen...">
                 <button class="btn btn-plus" onclick="addTaskToTemp()">+</button>
             </div>
-            <button class="btn btn-save" onclick="finalizeAndSave()">Speichern</button>
+            <button class="btn btn-save" onclick="finalizeAndSave()">Speichern & Archivieren</button>
+            <button class="btn btn-cancel" onclick="switchView('view-home')">Abbrechen</button>
         </div>
     </div>
 
+    <!-- DETAILS -->
     <div id="view-detail" class="view">
-        <button onclick="switchView('view-home')" style="background:none; color:var(--neon-blue); border:none; margin-bottom:10px;">← Zurück</button>
+        <button onclick="switchView('view-home')" style="background:none; color:var(--neon-blue); border:none; margin-bottom:15px; cursor:pointer; font-weight:bold;">← ZURÜCK</button>
         <h2 id="detail-title">Details</h2>
         <div id="detail-list"></div>
-        <button class="btn btn-save" id="edit-list-btn" style="background:transparent; border: 1px solid var(--neon-blue); margin-top:20px;">Liste Bearbeiten</button>
+        <button class="btn btn-save" id="edit-list-btn" style="background:transparent; border: 1px solid var(--neon-blue); margin-top:20px;">Bearbeiten</button>
     </div>
 </div>
 
 <button class="fab" id="main-fab" onclick="startNewList()">+</button>
-
-<nav>
-    <div class="nav-item active" id="nav-home" onclick="switchView('view-home')">📁<br>ARCHIV</div>
-    <div class="nav-item" style="visibility: hidden;"></div> <!-- Platzhalter für FAB -->
-</nav>
 
 <script>
     let tempTasks = [];
@@ -140,11 +130,9 @@
     function switchView(viewId) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(viewId).classList.add('active');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         
         const fab = document.getElementById('main-fab');
         if(viewId === 'view-home') {
-            document.getElementById('nav-home').classList.add('active');
             renderArchive();
             fab.style.display = "flex";
         } else {
@@ -217,12 +205,16 @@
             savedLists.push({ id: Date.now(), title: title, date: new Date().toLocaleString('de-DE'), tasks: [...tempTasks] });
         }
         saveToStorage();
-        switchView('view-home');
+        switchView('view-home'); // Rückkehr zum Archiv
     }
 
     function renderArchive() {
         const container = document.getElementById('archive-container');
         container.innerHTML = "";
+        if(savedLists.length === 0) {
+            container.innerHTML = "<p style='color:#555; text-align:center; margin-top:50px;'>Keine Protokolle vorhanden.</p>";
+            return;
+        }
         savedLists.forEach(list => {
             const doneCount = list.tasks.filter(t => t.done).length;
             const progress = (doneCount / list.tasks.length) * 100;
@@ -258,7 +250,7 @@
         list.tasks.forEach((t, i) => {
             const div = document.createElement('div');
             div.className = `task-display prio-${t.prio}`;
-            div.style.opacity = t.done ? "0.5" : "1";
+            div.style.opacity = t.done ? "0.4" : "1";
             div.innerHTML = `<span>${t.done ? '✓ ' : ''}${t.text}</span>`;
             div.onclick = () => toggleDone(id, i);
             container.appendChild(div);
@@ -269,11 +261,13 @@
             document.getElementById('main-title').value = list.title;
             tempTasks = [...list.tasks];
             renderTempTasks();
+            document.getElementById('editor-heading').innerText = "Bearbeiten";
             switchView('view-editor');
         };
         switchView('view-detail');
     }
 
+    // Initialer Load
     renderArchive();
 </script>
 </body>
