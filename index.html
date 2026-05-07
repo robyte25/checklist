@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>FutureCheck Pro</title>
+    <title>FutureCheck Pro - Edit Mode</title>
     <style>
         :root {
             --bg: #050608;
@@ -42,7 +42,6 @@
 
         h2 { color: var(--neon-blue); text-transform: uppercase; border-left: 4px solid var(--neon-purple); padding-left: 10px; }
 
-        /* Eingabe-Bereich */
         .input-card {
             background: var(--glass);
             padding: 15px;
@@ -68,7 +67,6 @@
             margin-bottom: 10px;
         }
 
-        /* Buttons */
         .btn {
             padding: 12px;
             border-radius: 8px;
@@ -95,16 +93,21 @@
             align-items: center;
         }
 
-        /* Task Item */
+        /* Editierbare Tasks */
         .task-display {
             background: rgba(255,255,255,0.05);
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 5px;
             border-left: 3px solid var(--neon-purple);
+            cursor: pointer;
+            transition: 0.2s;
         }
 
-        /* Navigation */
+        .task-display:hover {
+            background: rgba(0, 242, 255, 0.1);
+        }
+
         nav {
             position: fixed;
             bottom: 0;
@@ -124,119 +127,120 @@
 <body>
 
 <div class="content">
-    <!-- VIEW: Home / Archiv -->
     <div id="view-home" class="view active">
         <h2>Meine Protokolle</h2>
-        <div id="archive-container">
-            <!-- Listen werden hier als Buttons generiert -->
-        </div>
+        <div id="archive-container"></div>
     </div>
 
-    <!-- VIEW: Editor -->
     <div id="view-editor" class="view">
-        <h2>Neues Protokoll</h2>
+        <h2 id="editor-heading">Neues Protokoll</h2>
         <div class="input-card">
-            <input type="text" id="main-title" placeholder="Name der Liste (z.B. Inventar)">
-            <div id="dynamic-tasks">
-                <!-- Hier erscheinen die hinzugefügten Aufgaben-Felder -->
-            </div>
+            <input type="text" id="main-title" placeholder="Name der Liste">
+            <div id="dynamic-tasks"></div>
             <div class="task-row">
                 <input type="text" id="new-task-input" placeholder="Aufgabe eingeben...">
                 <button class="btn btn-plus" onclick="addTaskToTemp()">+</button>
             </div>
-            <button class="btn btn-save" onclick="finalizeAndSave()">Protokoll Speichern</button>
+            <button class="btn btn-save" onclick="finalizeAndSave()">Speichern</button>
         </div>
     </div>
 
-    <!-- VIEW: Detailansicht -->
     <div id="view-detail" class="view">
         <button onclick="switchView('view-home')" style="background:none; color:var(--neon-blue); border:none; margin-bottom:10px;">← Zurück</button>
         <h2 id="detail-title">Details</h2>
         <div id="detail-list"></div>
+        <button class="btn btn-save" id="edit-list-btn" style="background:transparent; border: 1px solid var(--neon-blue); margin-top:20px;">Liste Bearbeiten</button>
     </div>
 </div>
 
 <nav>
     <div class="nav-item active" id="nav-home" onclick="switchView('view-home')">
-        <div style="font-size: 1.5rem;">📁</div>
-        ARCHIV
+        <div style="font-size: 1.5rem;">📁</div>ARCHIV
     </div>
-    <div class="nav-item" id="nav-editor" onclick="switchView('view-editor')">
-        <div style="font-size: 1.5rem;">＋</div>
-        LISTE HINZUFÜGEN
+    <div class="nav-item" id="nav-editor" onclick="startNewList()">
+        <div style="font-size: 1.5rem;">＋</div>LISTE HINZUFÜGEN
     </div>
 </nav>
 
 <script>
     let tempTasks = [];
     let savedLists = [];
+    let editingListId = null;
 
     function switchView(viewId) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(viewId).classList.add('active');
-        
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         if(viewId === 'view-home') document.getElementById('nav-home').classList.add('active');
         if(viewId === 'view-editor') document.getElementById('nav-editor').classList.add('active');
     }
 
-    // Fügt eine Aufgabe zur aktuellen (noch nicht gespeicherten) Liste hinzu
-    function addTaskToTemp() {
-        const input = document.getElementById('new-task-input');
-        if(input.value.trim() === "") return;
-
-        tempTasks.push(input.value);
-        
-        const container = document.getElementById('dynamic-tasks');
-        const div = document.createElement('div');
-        div.className = 'task-display';
-        div.innerText = input.value;
-        container.appendChild(div);
-
-        input.value = "";
-    }
-
-    // Speichert die gesamte Liste im Archiv
-    function finalizeAndSave() {
-        const title = document.getElementById('main-title').value || "Unbenanntes Protokoll";
-        if(tempTasks.length === 0) {
-            alert("Die Liste ist leer!");
-            return;
-        }
-
-        const listObject = {
-            id: Date.now(),
-            title: title,
-            date: new Date().toLocaleString('de-DE'),
-            tasks: [...tempTasks]
-        };
-
-        savedLists.push(listObject);
-        renderArchive();
-        
-        // Reset Editor
+    function startNewList() {
+        editingListId = null;
         tempTasks = [];
         document.getElementById('main-title').value = "";
         document.getElementById('dynamic-tasks').innerHTML = "";
-        
+        document.getElementById('editor-heading').innerText = "Neues Protokoll";
+        switchView('view-editor');
+    }
+
+    function addTaskToTemp() {
+        const input = document.getElementById('new-task-input');
+        if(input.value.trim() === "") return;
+        tempTasks.push(input.value);
+        input.value = "";
+        renderTempTasks();
+    }
+
+    function editTempTask(index) {
+        const newValue = prompt("Aufgabe bearbeiten:", tempTasks[index]);
+        if (newValue !== null && newValue.trim() !== "") {
+            tempTasks[index] = newValue;
+            renderTempTasks();
+        }
+    }
+
+    function renderTempTasks() {
+        const container = document.getElementById('dynamic-tasks');
+        container.innerHTML = "";
+        tempTasks.forEach((task, index) => {
+            const div = document.createElement('div');
+            div.className = 'task-display';
+            div.innerText = task;
+            div.onclick = () => editTempTask(index);
+            container.appendChild(div);
+        });
+    }
+
+    function finalizeAndSave() {
+        const title = document.getElementById('main-title').value || "Unbenannt";
+        if(tempTasks.length === 0) return;
+
+        if (editingListId) {
+            const listIndex = savedLists.findIndex(l => l.id === editingListId);
+            savedLists[listIndex].title = title;
+            savedLists[listIndex].tasks = [...tempTasks];
+        } else {
+            savedLists.push({
+                id: Date.now(),
+                title: title,
+                date: new Date().toLocaleString('de-DE'),
+                tasks: [...tempTasks]
+            });
+        }
+
+        renderArchive();
         switchView('view-home');
     }
 
     function renderArchive() {
         const container = document.getElementById('archive-container');
         container.innerHTML = "";
-
         savedLists.forEach(list => {
             const btn = document.createElement('button');
             btn.className = 'list-btn';
             btn.onclick = () => showDetail(list.id);
-            btn.innerHTML = `
-                <div>
-                    <strong>${list.title}</strong><br>
-                    <small style="color:var(--neon-purple)">${list.date}</small>
-                </div>
-                <span>➔</span>
-            `;
+            btn.innerHTML = `<div><strong>${list.title}</strong><br><small style="color:var(--neon-purple)">${list.date}</small></div><span>➔</span>`;
             container.prepend(btn);
         });
     }
@@ -246,7 +250,6 @@
         document.getElementById('detail-title').innerText = list.title;
         const container = document.getElementById('detail-list');
         container.innerHTML = "";
-
         list.tasks.forEach(t => {
             const div = document.createElement('div');
             div.className = 'task-display';
@@ -254,9 +257,17 @@
             container.appendChild(div);
         });
 
+        document.getElementById('edit-list-btn').onclick = () => {
+            editingListId = list.id;
+            document.getElementById('main-title').value = list.title;
+            tempTasks = [...list.tasks];
+            renderTempTasks();
+            document.getElementById('editor-heading').innerText = "Bearbeiten";
+            switchView('view-editor');
+        };
+
         switchView('view-detail');
     }
 </script>
-
 </body>
 </html>
