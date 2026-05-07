@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>FutureCheck Pro - Final</title>
+    <title>FutureCheck Pro - Ultra</title>
     <style>
         :root {
             --bg: #050608;
             --glass: rgba(25, 30, 45, 0.9);
             --neon-blue: #00f2ff;
             --neon-purple: #bc13fe;
+            --neon-yellow: #f0ff00;
             --text: #ffffff;
             --nav-h: 70px;
         }
@@ -18,117 +19,54 @@
             font-family: 'Segoe UI', sans-serif;
             background: var(--bg);
             color: var(--text);
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            margin: 0; padding: 0;
+            height: 100vh; display: flex; flex-direction: column;
+            overflow: hidden; touch-action: manipulation;
         }
 
-        .content {
-            flex: 1;
-            padding: 20px;
-            padding-bottom: 90px;
-            overflow-y: auto;
-        }
-
+        .content { flex: 1; padding: 20px; padding-bottom: 90px; overflow-y: auto; }
         .view { display: none; animation: slide 0.3s ease-out; }
         .view.active { display: block; }
 
-        @keyframes slide {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
+        @keyframes slide { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
 
         h2 { color: var(--neon-blue); text-transform: uppercase; border-left: 4px solid var(--neon-purple); padding-left: 10px; }
 
-        .input-card {
-            background: var(--glass);
-            padding: 15px;
-            border-radius: 15px;
-            border: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 15px;
-        }
+        /* Fortschrittsbalken */
+        .progress-container { width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-top: 8px; border-radius: 2px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); transition: width 0.3s; }
 
-        input {
-            width: 100%;
-            padding: 12px;
-            background: rgba(0,0,0,0.5);
-            border: 1px solid var(--neon-blue);
-            border-radius: 8px;
-            color: white;
-            margin-bottom: 10px;
-            box-sizing: border-box;
-            font-size: 16px;
-        }
+        .input-card { background: var(--glass); padding: 15px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; }
 
-        .task-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
+        input { width: 100%; padding: 12px; background: rgba(0,0,0,0.5); border: 1px solid var(--neon-blue); border-radius: 8px; color: white; margin-bottom: 10px; box-sizing: border-box; font-size: 16px; }
 
-        .btn {
-            padding: 12px;
-            border-radius: 8px;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-        }
-
+        .task-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .btn { padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; }
         .btn-plus { background: var(--neon-blue); color: black; width: 50px; font-size: 1.5rem; }
         .btn-save { background: var(--neon-purple); color: white; width: 100%; margin-top: 10px; }
         
-        .list-btn {
-            width: 100%;
-            background: rgba(255,255,255,0.05);
-            color: white;
-            text-align: left;
-            padding: 15px;
-            margin-bottom: 10px;
-            border: 1px solid var(--neon-blue);
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .list-btn { width: 100%; background: rgba(255,255,255,0.05); color: white; text-align: left; padding: 15px; margin-bottom: 12px; border: 1px solid var(--neon-blue); border-radius: 10px; }
 
+        /* Task Item mit Swipe & Prio */
         .task-display {
+            position: relative;
             background: rgba(255,255,255,0.05);
             padding: 12px;
             border-radius: 8px;
-            margin-bottom: 5px;
-            border-left: 3px solid var(--neon-purple);
-            cursor: pointer;
-            min-height: 20px;
+            margin-bottom: 8px;
+            border-left: 5px solid var(--neon-blue);
+            transition: transform 0.2s, border-color 0.3s;
+            overflow: hidden;
+            display: flex; justify-content: space-between; align-items: center;
         }
 
-        .edit-input {
-            width: 100%;
-            background: #111;
-            border: 1px dashed var(--neon-blue);
-            color: var(--neon-blue);
-            padding: 8px;
-            border-radius: 4px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
+        .prio-0 { border-left-color: var(--neon-blue); }
+        .prio-1 { border-left-color: var(--neon-yellow); }
+        .prio-2 { border-left-color: var(--neon-purple); }
 
-        nav {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            height: var(--nav-h);
-            background: #000;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            border-top: 1px solid var(--neon-blue);
-            z-index: 100;
-        }
+        .edit-input { width: 100%; background: #111; border: 1px dashed var(--neon-blue); color: var(--neon-blue); padding: 8px; border-radius: 4px; font-size: 16px; box-sizing: border-box; }
 
+        nav { position: fixed; bottom: 0; width: 100%; height: var(--nav-h); background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--neon-blue); z-index: 100; }
         .nav-item { color: #555; font-size: 0.8rem; text-align: center; }
         .nav-item.active { color: var(--neon-blue); }
     </style>
@@ -136,13 +74,11 @@
 <body>
 
 <div class="content">
-    <!-- ARCHIV ANSICHT -->
     <div id="view-home" class="view active">
         <h2>Meine Protokolle</h2>
         <div id="archive-container"></div>
     </div>
 
-    <!-- EDITOR ANSICHT -->
     <div id="view-editor" class="view">
         <h2 id="editor-heading">Neues Protokoll</h2>
         <div class="input-card">
@@ -156,9 +92,8 @@
         </div>
     </div>
 
-    <!-- DETAIL ANSICHT -->
     <div id="view-detail" class="view">
-        <button onclick="switchView('view-home')" style="background:none; color:var(--neon-blue); border:none; margin-bottom:10px; cursor:pointer;">← Zurück</button>
+        <button onclick="switchView('view-home')" style="background:none; color:var(--neon-blue); border:none; margin-bottom:10px;">← Zurück</button>
         <h2 id="detail-title">Details</h2>
         <div id="detail-list"></div>
         <button class="btn btn-save" id="edit-list-btn" style="background:transparent; border: 1px solid var(--neon-blue); margin-top:20px;">Liste Bearbeiten</button>
@@ -166,30 +101,28 @@
 </div>
 
 <nav>
-    <div class="nav-item active" id="nav-home" onclick="switchView('view-home')">
-        <div style="font-size: 1.5rem;">📁</div>ARCHIV
-    </div>
-    <div class="nav-item" id="nav-editor" onclick="startNewList()">
-        <div style="font-size: 1.5rem;">＋</div>LISTE HINZUFÜGEN
-    </div>
+    <div class="nav-item active" id="nav-home" onclick="switchView('view-home')">📁<br>ARCHIV</div>
+    <div class="nav-item" id="nav-editor" onclick="startNewList()">＋<br>LISTE</div>
 </nav>
 
 <script>
-    let tempTasks = [];
-    let savedLists = [];
+    let tempTasks = []; // Format: { text: string, prio: number, done: bool }
+    let savedLists = JSON.parse(localStorage.getItem('futureCheckData')) || [];
     let editingListId = null;
+    let touchStartX = 0;
+
+    function saveToStorage() { localStorage.setItem('futureCheckData', JSON.stringify(savedLists)); }
 
     function switchView(viewId) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(viewId).classList.add('active');
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        if(viewId === 'view-home') document.getElementById('nav-home').classList.add('active');
+        if(viewId === 'view-home') { document.getElementById('nav-home').classList.add('active'); renderArchive(); }
         if(viewId === 'view-editor') document.getElementById('nav-editor').classList.add('active');
     }
 
     function startNewList() {
-        editingListId = null;
-        tempTasks = [];
+        editingListId = null; tempTasks = [];
         document.getElementById('main-title').value = "";
         document.getElementById('dynamic-tasks').innerHTML = "";
         document.getElementById('editor-heading').innerText = "Neues Protokoll";
@@ -199,36 +132,24 @@
     function addTaskToTemp() {
         const input = document.getElementById('new-task-input');
         if(input.value.trim() === "") return;
-        tempTasks.push(input.value);
+        tempTasks.push({ text: input.value, prio: 0, done: false });
         input.value = "";
+        renderTempTasks();
+    }
+
+    function cyclePrio(index) {
+        tempTasks[index].prio = (tempTasks[index].prio + 1) % 3;
         renderTempTasks();
     }
 
     function makeTaskEditable(index, element) {
         if (element.querySelector('input')) return;
-
-        const currentText = tempTasks[index];
+        const currentText = tempTasks[index].text;
         element.innerHTML = `<input type="text" class="edit-input" value="${currentText}">`;
-        
-        element.onclick = null;
         const input = element.querySelector('input');
         input.focus();
-        input.setSelectionRange(input.value.length, input.value.length);
-
-        const saveInline = () => {
-            const newVal = input.value.trim();
-            if(newVal !== "") {
-                tempTasks[index] = newVal;
-            }
-            renderTempTasks();
-        };
-
-        input.onclick = (e) => e.stopPropagation();
-        input.onblur = saveInline;
-        input.onkeydown = (e) => { 
-            if(e.key === 'Enter') saveInline(); 
-            if(e.key === 'Escape') renderTempTasks();
-        };
+        input.onblur = () => { tempTasks[index].text = input.value; renderTempTasks(); };
+        input.onkeydown = (e) => { if(e.key === 'Enter') input.blur(); };
     }
 
     function renderTempTasks() {
@@ -236,8 +157,19 @@
         container.innerHTML = "";
         tempTasks.forEach((task, index) => {
             const div = document.createElement('div');
-            div.className = 'task-display';
-            div.innerText = task;
+            div.className = `task-display prio-${task.prio}`;
+            div.innerHTML = `<span>${task.text}</span><small onclick="event.stopPropagation(); cyclePrio(${index})" style="color:var(--neon-blue)">PRIO</small>`;
+            
+            // Swipe-Gesten Setup
+            div.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
+            div.addEventListener('touchend', e => {
+                let diff = touchStartX - e.changedTouches[0].clientX;
+                if(diff > 100) { // Swipe Links = Löschen
+                    tempTasks.splice(index, 1);
+                    renderTempTasks();
+                }
+            });
+
             div.onclick = () => makeTaskEditable(index, div);
             container.appendChild(div);
         });
@@ -252,14 +184,9 @@
             savedLists[listIndex].title = title;
             savedLists[listIndex].tasks = [...tempTasks];
         } else {
-            savedLists.push({
-                id: Date.now(),
-                title: title,
-                date: new Date().toLocaleString('de-DE'),
-                tasks: [...tempTasks]
-            });
+            savedLists.push({ id: Date.now(), title: title, date: new Date().toLocaleString('de-DE'), tasks: [...tempTasks] });
         }
-        renderArchive();
+        saveToStorage();
         switchView('view-home');
     }
 
@@ -267,12 +194,29 @@
         const container = document.getElementById('archive-container');
         container.innerHTML = "";
         savedLists.forEach(list => {
-            const btn = document.createElement('button');
+            const doneCount = list.tasks.filter(t => t.done).length;
+            const progress = (doneCount / list.tasks.length) * 100;
+            
+            const btn = document.createElement('div');
             btn.className = 'list-btn';
             btn.onclick = () => showDetail(list.id);
-            btn.innerHTML = `<div><strong>${list.title}</strong><br><small style="color:var(--neon-purple)">${list.date}</small></div><span>➔</span>`;
+            btn.innerHTML = `
+                <div style="display:flex; justify-content:space-between">
+                    <strong>${list.title}</strong>
+                    <small>${doneCount}/${list.tasks.length}</small>
+                </div>
+                <div class="progress-container"><div class="progress-bar" style="width:${progress}%"></div></div>
+                <small style="color:var(--neon-purple); font-size:0.7rem">${list.date}</small>
+            `;
             container.prepend(btn);
         });
+    }
+
+    function toggleDone(listId, taskIndex) {
+        const list = savedLists.find(l => l.id === listId);
+        list.tasks[taskIndex].done = !list.tasks[taskIndex].done;
+        saveToStorage();
+        showDetail(listId);
     }
 
     function showDetail(id) {
@@ -280,11 +224,13 @@
         document.getElementById('detail-title').innerText = list.title;
         const container = document.getElementById('detail-list');
         container.innerHTML = "";
-        list.tasks.forEach(t => {
+        
+        list.tasks.forEach((t, i) => {
             const div = document.createElement('div');
-            div.className = 'task-display';
-            div.style.cursor = "default";
-            div.innerText = t;
+            div.className = `task-display prio-${t.prio}`;
+            div.style.opacity = t.done ? "0.5" : "1";
+            div.innerHTML = `<span>${t.done ? '✓ ' : ''}${t.text}</span>`;
+            div.onclick = () => toggleDone(id, i);
             container.appendChild(div);
         });
 
@@ -293,11 +239,12 @@
             document.getElementById('main-title').value = list.title;
             tempTasks = [...list.tasks];
             renderTempTasks();
-            document.getElementById('editor-heading').innerText = "Bearbeiten";
             switchView('view-editor');
         };
         switchView('view-detail');
     }
+
+    renderArchive(); // Initialer Load
 </script>
 </body>
 </html>
