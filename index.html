@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>FutureCheck Pro - Inline Edit</title>
+    <title>FutureCheck Pro - Final</title>
     <style>
         :root {
             --bg: #050608;
@@ -23,6 +23,7 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
         .content {
@@ -101,9 +102,9 @@
             margin-bottom: 5px;
             border-left: 3px solid var(--neon-purple);
             cursor: pointer;
+            min-height: 20px;
         }
 
-        /* Inline Edit Styling */
         .edit-input {
             width: 100%;
             background: #111;
@@ -112,6 +113,7 @@
             padding: 8px;
             border-radius: 4px;
             font-size: 16px;
+            box-sizing: border-box;
         }
 
         nav {
@@ -124,6 +126,7 @@
             justify-content: space-around;
             align-items: center;
             border-top: 1px solid var(--neon-blue);
+            z-index: 100;
         }
 
         .nav-item { color: #555; font-size: 0.8rem; text-align: center; }
@@ -133,11 +136,13 @@
 <body>
 
 <div class="content">
+    <!-- ARCHIV ANSICHT -->
     <div id="view-home" class="view active">
         <h2>Meine Protokolle</h2>
         <div id="archive-container"></div>
     </div>
 
+    <!-- EDITOR ANSICHT -->
     <div id="view-editor" class="view">
         <h2 id="editor-heading">Neues Protokoll</h2>
         <div class="input-card">
@@ -151,8 +156,9 @@
         </div>
     </div>
 
+    <!-- DETAIL ANSICHT -->
     <div id="view-detail" class="view">
-        <button onclick="switchView('view-home')" style="background:none; color:var(--neon-blue); border:none; margin-bottom:10px;">← Zurück</button>
+        <button onclick="switchView('view-home')" style="background:none; color:var(--neon-blue); border:none; margin-bottom:10px; cursor:pointer;">← Zurück</button>
         <h2 id="detail-title">Details</h2>
         <div id="detail-list"></div>
         <button class="btn btn-save" id="edit-list-btn" style="background:transparent; border: 1px solid var(--neon-blue); margin-top:20px;">Liste Bearbeiten</button>
@@ -198,25 +204,31 @@
         renderTempTasks();
     }
 
-    // Inline Bearbeitung ohne Prompt
     function makeTaskEditable(index, element) {
+        if (element.querySelector('input')) return;
+
         const currentText = tempTasks[index];
         element.innerHTML = `<input type="text" class="edit-input" value="${currentText}">`;
+        
+        element.onclick = null;
         const input = element.querySelector('input');
         input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
 
         const saveInline = () => {
             const newVal = input.value.trim();
             if(newVal !== "") {
                 tempTasks[index] = newVal;
-                renderTempTasks();
-            } else {
-                renderTempTasks(); // Zurücksetzen falls leer
             }
+            renderTempTasks();
         };
 
+        input.onclick = (e) => e.stopPropagation();
         input.onblur = saveInline;
-        input.onkeydown = (e) => { if(e.key === 'Enter') saveInline(); };
+        input.onkeydown = (e) => { 
+            if(e.key === 'Enter') saveInline(); 
+            if(e.key === 'Escape') renderTempTasks();
+        };
     }
 
     function renderTempTasks() {
@@ -271,6 +283,7 @@
         list.tasks.forEach(t => {
             const div = document.createElement('div');
             div.className = 'task-display';
+            div.style.cursor = "default";
             div.innerText = t;
             container.appendChild(div);
         });
