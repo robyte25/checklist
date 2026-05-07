@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>FutureCheck Pro - Clean Edition</title>
+    <title>FutureCheck Pro - Final Edition</title>
     <style>
         :root {
             --bg: #050608;
@@ -11,6 +11,7 @@
             --neon-blue: #00f2ff;
             --neon-purple: #bc13fe;
             --neon-yellow: #f0ff00;
+            --neon-red: #ff003c;
             --text: #ffffff;
         }
 
@@ -31,7 +32,6 @@
 
         h2 { color: var(--neon-blue); text-transform: uppercase; border-left: 4px solid var(--neon-purple); padding-left: 10px; margin-top: 0; }
 
-        /* Floating Action Button */
         .fab {
             position: fixed;
             bottom: 30px;
@@ -40,18 +40,12 @@
             height: 65px;
             background: linear-gradient(45deg, var(--neon-purple), var(--neon-blue));
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 35px;
-            color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 35px; color: white;
             box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
-            border: none;
-            cursor: pointer;
-            z-index: 100;
+            border: none; cursor: pointer; z-index: 100;
         }
 
-        /* Fortschrittsbalken */
         .progress-container { width: 100%; height: 4px; background: rgba(255,255,255,0.1); margin-top: 8px; border-radius: 2px; overflow: hidden; }
         .progress-bar { height: 100%; background: var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); transition: width 0.3s; }
 
@@ -64,6 +58,7 @@
         .btn-plus { background: var(--neon-blue); color: black; width: 50px; font-size: 1.5rem; }
         .btn-save { background: var(--neon-purple); color: white; width: 100%; margin-top: 10px; }
         .btn-cancel { background: transparent; color: #888; border: 1px solid #444; width: 100%; margin-top: 10px; }
+        .btn-delete { background: var(--neon-red); color: white; width: 100%; margin-top: 20px; box-shadow: 0 0 10px rgba(255, 0, 60, 0.3); }
         
         .list-btn { width: 100%; background: rgba(255,255,255,0.05); color: white; text-align: left; padding: 15px; margin-bottom: 12px; border: 1px solid var(--neon-blue); border-radius: 10px; box-sizing: border-box; }
 
@@ -87,15 +82,13 @@
 <body>
 
 <div class="content">
-    <!-- ARCHIV -->
     <div id="view-home" class="view active">
         <h2>Archiv</h2>
         <div id="archive-container"></div>
     </div>
 
-    <!-- EDITOR -->
     <div id="view-editor" class="view">
-        <h2 id="editor-heading">Neues Protokoll</h2>
+        <h2 id="editor-heading">Editor</h2>
         <div class="input-card">
             <input type="text" id="main-title" placeholder="Titel der Liste">
             <div id="dynamic-tasks"></div>
@@ -105,10 +98,10 @@
             </div>
             <button class="btn btn-save" onclick="finalizeAndSave()">Speichern & Archivieren</button>
             <button class="btn btn-cancel" onclick="switchView('view-home')">Abbrechen</button>
+            <button class="btn btn-delete" onclick="clearFullList()">Gesamte Liste Löschen</button>
         </div>
     </div>
 
-    <!-- DETAILS -->
     <div id="view-detail" class="view">
         <button onclick="switchView('view-home')" style="background:none; color:var(--neon-blue); border:none; margin-bottom:15px; cursor:pointer; font-weight:bold;">← ZURÜCK</button>
         <h2 id="detail-title">Details</h2>
@@ -130,14 +123,8 @@
     function switchView(viewId) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(viewId).classList.add('active');
-        
         const fab = document.getElementById('main-fab');
-        if(viewId === 'view-home') {
-            renderArchive();
-            fab.style.display = "flex";
-        } else {
-            fab.style.display = "none";
-        }
+        if(viewId === 'view-home') { renderArchive(); fab.style.display = "flex"; } else { fab.style.display = "none"; }
     }
 
     function startNewList() {
@@ -161,6 +148,13 @@
         renderTempTasks();
     }
 
+    function clearFullList() {
+        if(confirm("Soll die gesamte aktuelle Liste unwiderruflich gelöscht werden?")) {
+            tempTasks = [];
+            renderTempTasks();
+        }
+    }
+
     function makeTaskEditable(index, element) {
         if (element.querySelector('input')) return;
         const currentText = tempTasks[index].text;
@@ -178,16 +172,11 @@
             const div = document.createElement('div');
             div.className = `task-display prio-${task.prio}`;
             div.innerHTML = `<span>${task.text}</span><small onclick="event.stopPropagation(); cyclePrio(${index})" style="color:var(--neon-blue); padding: 5px;">PRIO</small>`;
-            
             div.addEventListener('touchstart', e => touchStartX = e.touches[0].clientX);
             div.addEventListener('touchend', e => {
                 let diff = touchStartX - e.changedTouches[0].clientX;
-                if(diff > 100) { 
-                    tempTasks.splice(index, 1);
-                    renderTempTasks();
-                }
+                if(diff > 100) { tempTasks.splice(index, 1); renderTempTasks(); }
             });
-
             div.onclick = () => makeTaskEditable(index, div);
             container.appendChild(div);
         });
@@ -196,7 +185,6 @@
     function finalizeAndSave() {
         const title = document.getElementById('main-title').value || "Unbenannt";
         if(tempTasks.length === 0) return;
-
         if (editingListId) {
             const listIndex = savedLists.findIndex(l => l.id === editingListId);
             savedLists[listIndex].title = title;
@@ -205,7 +193,7 @@
             savedLists.push({ id: Date.now(), title: title, date: new Date().toLocaleString('de-DE'), tasks: [...tempTasks] });
         }
         saveToStorage();
-        switchView('view-home'); // Rückkehr zum Archiv
+        switchView('view-home');
     }
 
     function renderArchive() {
@@ -218,18 +206,10 @@
         savedLists.forEach(list => {
             const doneCount = list.tasks.filter(t => t.done).length;
             const progress = (doneCount / list.tasks.length) * 100;
-            
             const btn = document.createElement('div');
             btn.className = 'list-btn';
             btn.onclick = () => showDetail(list.id);
-            btn.innerHTML = `
-                <div style="display:flex; justify-content:space-between">
-                    <strong>${list.title}</strong>
-                    <small>${doneCount}/${list.tasks.length}</small>
-                </div>
-                <div class="progress-container"><div class="progress-bar" style="width:${progress}%"></div></div>
-                <small style="color:var(--neon-purple); font-size:0.7rem">${list.date}</small>
-            `;
+            btn.innerHTML = `<div style="display:flex; justify-content:space-between"><strong>${list.title}</strong><small>${doneCount}/${list.tasks.length}</small></div><div class="progress-container"><div class="progress-bar" style="width:${progress}%"></div></div><small style="color:var(--neon-purple); font-size:0.7rem">${list.date}</small>`;
             container.prepend(btn);
         });
     }
@@ -246,7 +226,6 @@
         document.getElementById('detail-title').innerText = list.title;
         const container = document.getElementById('detail-list');
         container.innerHTML = "";
-        
         list.tasks.forEach((t, i) => {
             const div = document.createElement('div');
             div.className = `task-display prio-${t.prio}`;
@@ -255,7 +234,6 @@
             div.onclick = () => toggleDone(id, i);
             container.appendChild(div);
         });
-
         document.getElementById('edit-list-btn').onclick = () => {
             editingListId = list.id;
             document.getElementById('main-title').value = list.title;
@@ -267,7 +245,6 @@
         switchView('view-detail');
     }
 
-    // Initialer Load
     renderArchive();
 </script>
 </body>
