@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>FutureCheck Pro - Edit Mode</title>
+    <title>FutureCheck Pro - Inline Edit</title>
     <style>
         :root {
             --bg: #050608;
@@ -59,6 +59,7 @@
             color: white;
             margin-bottom: 10px;
             box-sizing: border-box;
+            font-size: 16px;
         }
 
         .task-row {
@@ -93,7 +94,6 @@
             align-items: center;
         }
 
-        /* Editierbare Tasks */
         .task-display {
             background: rgba(255,255,255,0.05);
             padding: 12px;
@@ -101,11 +101,17 @@
             margin-bottom: 5px;
             border-left: 3px solid var(--neon-purple);
             cursor: pointer;
-            transition: 0.2s;
         }
 
-        .task-display:hover {
-            background: rgba(0, 242, 255, 0.1);
+        /* Inline Edit Styling */
+        .edit-input {
+            width: 100%;
+            background: #111;
+            border: 1px dashed var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 16px;
         }
 
         nav {
@@ -192,12 +198,25 @@
         renderTempTasks();
     }
 
-    function editTempTask(index) {
-        const newValue = prompt("Aufgabe bearbeiten:", tempTasks[index]);
-        if (newValue !== null && newValue.trim() !== "") {
-            tempTasks[index] = newValue;
-            renderTempTasks();
-        }
+    // Inline Bearbeitung ohne Prompt
+    function makeTaskEditable(index, element) {
+        const currentText = tempTasks[index];
+        element.innerHTML = `<input type="text" class="edit-input" value="${currentText}">`;
+        const input = element.querySelector('input');
+        input.focus();
+
+        const saveInline = () => {
+            const newVal = input.value.trim();
+            if(newVal !== "") {
+                tempTasks[index] = newVal;
+                renderTempTasks();
+            } else {
+                renderTempTasks(); // Zurücksetzen falls leer
+            }
+        };
+
+        input.onblur = saveInline;
+        input.onkeydown = (e) => { if(e.key === 'Enter') saveInline(); };
     }
 
     function renderTempTasks() {
@@ -207,7 +226,7 @@
             const div = document.createElement('div');
             div.className = 'task-display';
             div.innerText = task;
-            div.onclick = () => editTempTask(index);
+            div.onclick = () => makeTaskEditable(index, div);
             container.appendChild(div);
         });
     }
@@ -228,7 +247,6 @@
                 tasks: [...tempTasks]
             });
         }
-
         renderArchive();
         switchView('view-home');
     }
@@ -265,7 +283,6 @@
             document.getElementById('editor-heading').innerText = "Bearbeiten";
             switchView('view-editor');
         };
-
         switchView('view-detail');
     }
 </script>
